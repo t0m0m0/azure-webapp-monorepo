@@ -1,0 +1,8 @@
+# project     = "webapp"
+# environment = "dev"
+# location    = "japaneast"
+# app_sku_name = "B1"
+# postgres_sku_name = "B_Standard_B1ms"
+# tags = {
+#   Team = "backend"
+# }

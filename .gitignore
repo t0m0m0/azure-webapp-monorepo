@@ -1,0 +1,15 @@
+# Terraform
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/*.tfplan
+infra/terraform.tfvars
+infra/.terraform.tfstate.lock.info
+
+# Go
+app/azure-webapp
+
+# OS
+.DS_Store
+*.swp
