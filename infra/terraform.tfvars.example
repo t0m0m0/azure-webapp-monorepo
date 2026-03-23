@@ -1,8 +1,96 @@
+# =============================================================================
+# Example: Development Environment
+# =============================================================================
+# Copy this file to terraform.tfvars and customize.
+# For production, see the prod example below.
+# =============================================================================
+
+project     = "webapp"
+environment = "dev"
+location    = "japaneast"
+
+# App Service (B1 = cheapest always-on SKU, ~$13/month)
+app_sku_name         = "B1"
+enable_staging_slot   = false
+app_min_instance_count = 1
+app_max_instance_count = 2
+
+# Database (burstable = cheapest, ~$25/month)
+postgres_sku_name           = "B_Standard_B1ms"
+postgres_storage_mb         = 32768
+postgres_ha_enabled         = false
+postgres_backup_retention_days = 7
+
+# Optional components (disabled for dev to save cost)
+enable_redis      = false
+enable_frontdoor  = false
+enable_budget     = false
+enable_github_oidc = false
+enable_geo_replication = false
+
+# AZ-104 Study Resources (enable to deploy hands-on resources)
+enable_storage       = false  # Storage Account + Blob + Files
+enable_vm            = false  # Virtual Machine + Disk + Extensions
+enable_load_balancer = false  # Load Balancer + Probe + NAT
+enable_governance    = false  # Azure Policy + Locks + RBAC
+
+# Monitoring
+log_retention_days     = 30
+alert_email_recipients = []
+
+tags = {
+  Team = "backend"
+}
+
+# =============================================================================
+# Example: Production Environment
+# =============================================================================
+# Uncomment and use for production deployment.
+# =============================================================================
+#
 # project     = "webapp"
-# environment = "dev"
+# environment = "prod"
 # location    = "japaneast"
-# app_sku_name = "B1"
-# postgres_sku_name = "B_Standard_B1ms"
+#
+# # App Service (P1v3 = production grade, ~$120/month)
+# app_sku_name          = "P1v3"
+# enable_staging_slot   = true
+# app_min_instance_count = 2
+# app_max_instance_count = 10
+#
+# # Database (General Purpose = production, ~$130/month)
+# postgres_sku_name              = "GP_Standard_D2ds_v4"
+# postgres_storage_mb            = 65536
+# postgres_ha_enabled            = true
+# postgres_backup_retention_days = 35
+#
+# # Redis (Standard for replication, ~$50/month)
+# enable_redis   = true
+# redis_sku_name = "Standard"
+# redis_capacity = 1
+#
+# # Front Door + WAF (~$330/month for Premium)
+# enable_frontdoor = true
+# waf_mode         = "Prevention"
+#
+# # Cost management
+# enable_budget  = true
+# budget_amount  = 800
+#
+# # CI/CD
+# enable_github_oidc = true
+# github_repo        = "your-org/azure-webapp-monorepo"
+#
+# # DR
+# enable_geo_replication = true
+# secondary_location    = "japanwest"
+#
+# # Monitoring
+# log_retention_days     = 90
+# alert_email_recipients = ["oncall@example.com", "platform-team@example.com"]
+#
 # tags = {
-#   Team = "backend"
+#   Team        = "platform"
+#   CostCenter  = "engineering"
+#   Compliance  = "SOC2"
 # }

@@ -1,0 +1,230 @@
+# =============================================================================
+# CI/CD Pipeline — Build, Test, Deploy with Blue/Green
+# =============================================================================
+# Flow:
+#   1. Build & test Go application
+#   2. Build Docker image & push to ACR
+#   3. Deploy to staging slot
+#   4. Run smoke tests against staging
+#   5. Swap staging -> production (zero downtime)
+#
+# Authentication: OIDC (no secrets stored in GitHub)
+# =============================================================================
+
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  id-token: write   # Required for OIDC
+  contents: read
+
+env:
+  # These must be set in GitHub repository variables (not secrets!)
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  ACR_NAME: ${{ vars.ACR_NAME }}
+  APP_NAME: ${{ vars.APP_NAME }}
+  RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  # ===========================================================================
+  # Job 1: Test
+  # ===========================================================================
+  test:
+    name: "🧪 Test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Run tests
+        working-directory: app
+        run: |
+          go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: app/coverage.out
+
+  # ===========================================================================
+  # Job 2: Build & Push Docker Image
+  # ===========================================================================
+  build:
+    name: "📦 Build & Push"
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to ACR
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE="${{ env.ACR_NAME }}.azurecr.io/${{ vars.PROJECT || 'webapp' }}:${{ env.IMAGE_TAG }}"
+          IMAGE_LATEST="${{ env.ACR_NAME }}.azurecr.io/${{ vars.PROJECT || 'webapp' }}:latest"
+
+          docker build \
+            --label "org.opencontainers.image.revision=${{ github.sha }}" \
+            --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+            -t "${IMAGE}" \
+            -t "${IMAGE_LATEST}" \
+            app/
+
+          docker push "${IMAGE}"
+          docker push "${IMAGE_LATEST}"
+
+          echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
+
+  # ===========================================================================
+  # Job 3: Deploy to Staging Slot
+  # ===========================================================================
+  deploy-staging:
+    name: "🚀 Deploy to Staging"
+    runs-on: ubuntu-latest
+    needs: build
+    environment: staging
+    steps:
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to staging slot
+        run: |
+          IMAGE="${{ env.ACR_NAME }}.azurecr.io/${{ vars.PROJECT || 'webapp' }}:${{ env.IMAGE_TAG }}"
+
+          az webapp config container set \
+            --name ${{ env.APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --slot staging \
+            --container-image-name "${IMAGE}" \
+            --container-registry-url "https://${{ env.ACR_NAME }}.azurecr.io"
+
+      - name: Wait for staging to be ready
+        run: |
+          STAGING_URL="https://${{ env.APP_NAME }}-staging.azurewebsites.net"
+          echo "Waiting for staging slot to be ready..."
+          for i in $(seq 1 30); do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${STAGING_URL}/health" || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Staging is healthy (attempt $i)"
+              exit 0
+            fi
+            echo "⏳ Attempt $i: HTTP $HTTP_CODE, waiting 10s..."
+            sleep 10
+          done
+          echo "❌ Staging did not become healthy in time"
+          exit 1
+
+  # ===========================================================================
+  # Job 4: Smoke Tests on Staging
+  # ===========================================================================
+  smoke-test:
+    name: "🔬 Smoke Test"
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    steps:
+      - name: Run smoke tests
+        run: |
+          STAGING_URL="https://${{ env.APP_NAME }}-staging.azurewebsites.net"
+
+          echo "=== Health Check ==="
+          HEALTH=$(curl -sf "${STAGING_URL}/health")
+          echo "$HEALTH"
+          echo "$HEALTH" | grep -q '"healthy":true' || { echo "❌ Health check failed"; exit 1; }
+
+          echo "=== Root Endpoint ==="
+          ROOT=$(curl -sf "${STAGING_URL}/")
+          echo "$ROOT"
+          echo "$ROOT" | grep -q '"status":"ok"' || { echo "❌ Root endpoint failed"; exit 1; }
+
+          echo "=== Response Time Check ==="
+          TIME=$(curl -sf -o /dev/null -w "%{time_total}" "${STAGING_URL}/health")
+          echo "Response time: ${TIME}s"
+          # Fail if response takes more than 5 seconds
+          if (( $(echo "$TIME > 5.0" | bc -l) )); then
+            echo "❌ Response too slow: ${TIME}s"
+            exit 1
+          fi
+
+          echo "✅ All smoke tests passed"
+
+  # ===========================================================================
+  # Job 5: Swap to Production
+  # ===========================================================================
+  swap-production:
+    name: "🔄 Swap to Production"
+    runs-on: ubuntu-latest
+    needs: smoke-test
+    environment: production
+    steps:
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Swap staging to production
+        run: |
+          echo "🔄 Swapping staging -> production..."
+          az webapp deployment slot swap \
+            --name ${{ env.APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --slot staging \
+            --target-slot production
+          echo "✅ Swap complete!"
+
+      - name: Verify production health
+        run: |
+          PROD_URL="https://${{ env.APP_NAME }}.azurewebsites.net"
+          sleep 10
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${PROD_URL}/health")
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Production is healthy"
+          else
+            echo "❌ Production health check failed (HTTP $HTTP_CODE)"
+            echo "🔄 Rolling back: swapping production -> staging"
+            az webapp deployment slot swap \
+              --name ${{ env.APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --slot staging \
+              --target-slot production
+            echo "⚠️ Rollback complete. Investigate the issue."
+            exit 1
+          fi
+
+      # Purge Front Door cache after deployment (if using Front Door)
+      - name: Purge Front Door cache
+        if: vars.FRONTDOOR_ENDPOINT != ''
+        run: |
+          az afd endpoint purge \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --profile-name ${{ vars.FRONTDOOR_PROFILE }} \
+            --endpoint-name ${{ vars.FRONTDOOR_ENDPOINT }} \
+            --content-paths '/*'
+          echo "✅ Front Door cache purged"
