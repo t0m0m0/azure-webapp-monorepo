@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Quiz from './pages/Quiz';
 import MockExam from './pages/MockExam';
 import Results from './pages/Results';
+import StudyContent from './pages/StudyContent';
 
 export default function App() {
   return (
@@ -11,12 +12,14 @@ export default function App() {
         <Link to="/" className="logo">AZ-104 学習アプリ</Link>
         <nav>
           <Link to="/">ホーム</Link>
+          <Link to="/study/1">学習コンテンツ</Link>
           <Link to="/exam">模擬試験</Link>
         </nav>
       </header>
       <main className="app-main">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/study/:domainId" element={<StudyContent />} />
           <Route path="/quiz/:domain" element={<Quiz />} />
           <Route path="/exam" element={<MockExam />} />
           <Route path="/exam/result/:id" element={<Results />} />
