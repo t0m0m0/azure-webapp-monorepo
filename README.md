@@ -87,12 +87,25 @@
 
 同梱の React + Go 製学習アプリで、Study Guide の 49 問を対話的に解けます。
 
+**Go がインストール済みの場合:**
+
 ```bash
 # 依存インストール (初回のみ)
 make web-install
 
 # SPA ビルド + Go サーバ起動 (http://localhost:8080)
 make app-run
+```
+
+**Docker で起動する場合 (Go 不要):**
+
+```bash
+# イメージビルド + コンテナ起動 (http://localhost:8080)
+docker build -f app/Dockerfile -t az104-app:local .
+docker run -d --name az104-app -p 8080:8080 az104-app:local
+
+# 停止・削除
+docker stop az104-app && docker rm az104-app
 ```
 
 - **ドメイン別クイズ** — 5 ドメインを選んで順に解答 → 即時フィードバック

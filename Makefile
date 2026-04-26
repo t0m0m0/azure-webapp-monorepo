@@ -1,7 +1,8 @@
 .PHONY: help infra-init infra-plan infra-apply infra-destroy infra-output infra-fmt infra-validate \
         docker-build docker-push deploy deploy-staging swap rollback \
         app-run app-test app-logs \
-        gen-questions gen-questions-check web-install web-dev web-build \
+        gen-questions gen-questions-check gen-study \
+        web-install web-dev web-build \
         fd-purge redis-cli db-connect slot-url
 
 PROJECT  ?= webapp
@@ -44,7 +45,7 @@ infra-validate: ## Terraform 構文検証
 
 # ==================== App ====================
 
-app-run: web-build gen-questions ## ローカルでアプリ起動 (SPA+questions.json生成込み)
+app-run: web-build gen-questions gen-study ## ローカルでアプリ起動 (SPA+questions.json+study_content.json生成込み)
 	cd app && go run .
 
 app-test: ## アプリのテスト
@@ -60,6 +61,12 @@ gen-questions: ## AZ-104 Study Guide から questions.json を生成
 
 gen-questions-check: ## questions.json が最新か検証 (CI用)
 	cd app && go run ./cmd/gen-questions -in ../docs/AZ-104_STUDY_GUIDE.md -out data/questions.json -check
+
+gen-study: ## docs/ + infra/ から study_content.json を生成 (Go版)
+	cd app && go run ./cmd/gen-study
+
+gen-study-node: ## docs/ + infra/ から study_content.json を生成 (Node.js版、Go未インストール環境用)
+	node app/cmd/gen-study/gen-study.mjs
 
 web-install: ## フロントエンド依存関係をインストール
 	cd app/web && npm ci

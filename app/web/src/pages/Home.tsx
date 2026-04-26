@@ -19,7 +19,7 @@ export default function Home() {
     <div className="home">
       <h1>ドメイン別学習</h1>
       <p className="intro">
-        AZ-104 の5ドメインについて、既存の練習問題を対話的に解けます。
+        AZ-104 の5ドメインについて、学習コンテンツを読んだあと練習問題を解けます。
         模擬試験はタイマー付き20問です。
       </p>
       <div className="domain-grid">
@@ -28,7 +28,7 @@ export default function Home() {
           const stats = domainStats(progress, d.id, qs);
           const pct = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
           return (
-            <Link key={d.id} to={`/quiz/${d.id}`} className="domain-card">
+            <div key={d.id} className="domain-card">
               <div className="domain-card-head">
                 <span className="domain-id">Domain {d.id}</span>
                 <span className="domain-weight">{d.weight}</span>
@@ -40,7 +40,11 @@ export default function Home() {
               <div className="progress-bar">
                 <div className="progress-fill" style={{ width: `${pct}%` }} />
               </div>
-            </Link>
+              <div className="domain-actions">
+                <Link to={`/study/${d.id}`} className="btn-study">学習</Link>
+                <Link to={`/quiz/${d.id}`} className="btn-quiz">問題演習</Link>
+              </div>
+            </div>
           );
         })}
       </div>
