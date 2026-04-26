@@ -53,6 +53,10 @@ jobs:
         run: |
           go test -v -race -coverprofile=coverage.out ./...
 
+      - name: Verify questions.json is in sync with AZ-104_STUDY_GUIDE.md
+        working-directory: app
+        run: go run ./cmd/gen-questions -in ../docs/AZ-104_STUDY_GUIDE.md -out data/questions.json -check
+
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
@@ -85,12 +89,14 @@ jobs:
           IMAGE="${{ env.ACR_NAME }}.azurecr.io/${{ vars.PROJECT || 'webapp' }}:${{ env.IMAGE_TAG }}"
           IMAGE_LATEST="${{ env.ACR_NAME }}.azurecr.io/${{ vars.PROJECT || 'webapp' }}:latest"
 
+          # Build context = repo root so /docs is reachable from Dockerfile
           docker build \
+            -f app/Dockerfile \
             --label "org.opencontainers.image.revision=${{ github.sha }}" \
             --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
             -t "${IMAGE}" \
             -t "${IMAGE_LATEST}" \
-            app/
+            .
 
           docker push "${IMAGE}"
           docker push "${IMAGE_LATEST}"
@@ -157,10 +163,15 @@ jobs:
           echo "$HEALTH"
           echo "$HEALTH" | grep -q '"healthy":true' || { echo "❌ Health check failed"; exit 1; }
 
-          echo "=== Root Endpoint ==="
+          echo "=== SPA Root ==="
           ROOT=$(curl -sf "${STAGING_URL}/")
-          echo "$ROOT"
-          echo "$ROOT" | grep -q '"status":"ok"' || { echo "❌ Root endpoint failed"; exit 1; }
+          echo "$ROOT" | head -1
+          echo "$ROOT" | grep -q '<div id="root">' || { echo "❌ SPA index.html not served"; exit 1; }
+
+          echo "=== Questions API ==="
+          QUESTIONS=$(curl -sf "${STAGING_URL}/api/questions")
+          echo "$QUESTIONS" | head -c 200
+          echo "$QUESTIONS" | grep -q '"questions"' || { echo "❌ /api/questions failed"; exit 1; }
 
           echo "=== Response Time Check ==="
           TIME=$(curl -sf -o /dev/null -w "%{time_total}" "${STAGING_URL}/health")

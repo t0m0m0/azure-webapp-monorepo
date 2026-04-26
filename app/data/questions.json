@@ -1,0 +1,1360 @@
+{
+  "domains": [
+    {
+      "id": 1,
+      "title": "IDとガバナンスの管理",
+      "weight": "20-25%"
+    },
+    {
+      "id": 2,
+      "title": "ストレージの実装と管理",
+      "weight": "15-20%"
+    },
+    {
+      "id": 3,
+      "title": "コンピューティングリソースのデプロイと管理",
+      "weight": "20-25%"
+    },
+    {
+      "id": 4,
+      "title": "仮想ネットワークの構成と管理",
+      "weight": "15-20%"
+    },
+    {
+      "id": 5,
+      "title": "Azureリソースの監視とバックアップ",
+      "weight": "10-15%"
+    }
+  ],
+  "questions": [
+    {
+      "id": "d1-q1",
+      "domain": 1,
+      "number": 1,
+      "text": "あなたの会社は、すべてのAzureリソースに「CostCenter」タグを必須にしたいと考えています。タグがないリソースの作成を防ぐには、どのAzure Policy効果を使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Audit"
+        },
+        {
+          "key": "B",
+          "text": "Append"
+        },
+        {
+          "key": "C",
+          "text": "Deny"
+        },
+        {
+          "key": "D",
+          "text": "DeployIfNotExists"
+        }
+      ],
+      "answer": "C",
+      "explanation": "**解説:**\n- **Deny**: タグがない場合にリソース作成を拒否します。これが要件に最も適しています。\n- **Audit**: 非準拠を記録するだけで、作成は許可されます。\n- **Append**: リソースに自動的にタグを追加しますが、作成は拒否しません。\n- **DeployIfNotExists**: 条件に応じて追加リソースをデプロイしますが、作成自体は拒否しません。",
+      "reference": "governance.tf"
+    },
+    {
+      "id": "d1-q2",
+      "domain": 1,
+      "number": 2,
+      "text": "開発チームがリソースグループ内のVMを作成・管理できるが、RBACの権限を変更できないようにする必要があります。どのロールを割り当てるべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Owner"
+        },
+        {
+          "key": "B",
+          "text": "Contributor"
+        },
+        {
+          "key": "C",
+          "text": "Virtual Machine Contributor"
+        },
+        {
+          "key": "D",
+          "text": "Reader"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\n- **Contributor**: リソースの作成・管理が可能ですが、RBAC権限の変更はできません。\n- **Owner**: RBAC権限の管理も可能なため、要件に合いません。\n- **Virtual Machine Contributor**: VM専用で、他のリソース（ネットワーク等）を作成できない可能性があります。\n- **Reader**: 読み取り専用で、リソース作成ができません。\n\n**ポイント:** ContributorはOwnerから「権限管理能力」を除いたロールです。",
+      "reference": "governance.tf"
+    },
+    {
+      "id": "d1-q3",
+      "domain": 1,
+      "number": 3,
+      "text": "本番環境のストレージアカウントを誤って削除されないように保護したいが、管理者が設定を変更できるようにする必要があります。どのリソースロックを使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "ReadOnly"
+        },
+        {
+          "key": "B",
+          "text": "CanNotDelete"
+        },
+        {
+          "key": "C",
+          "text": "Delete"
+        },
+        {
+          "key": "D",
+          "text": "DoNotDelete"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\n- **CanNotDelete**: 削除は防ぎますが、読み取りと更新（設定変更）は可能です。これが要件に合致します。\n- **ReadOnly**: 読み取りのみで、設定変更もできなくなります。\n- **Delete / DoNotDelete**: 存在しないロックタイプです。\n\n**リソースロックは2種類のみ:**\n1. CanNotDelete（削除不可）\n2. ReadOnly（読み取り専用）",
+      "reference": "governance.tf"
+    },
+    {
+      "id": "d1-q4",
+      "domain": 1,
+      "number": 4,
+      "text": "組織には3つの部門があり、それぞれが独自のサブスクリプションを持っています。すべての部門に対して、Japan EastとJapan Westのリージョンのみでリソース作成を許可するポリシーを適用したいです。最も効率的な方法は？",
+      "options": [
+        {
+          "key": "A",
+          "text": "各サブスクリプションに個別にポリシーを割り当てる"
+        },
+        {
+          "key": "B",
+          "text": "管理グループを作成し、3つのサブスクリプションを追加して、管理グループレベルでポリシーを割り当てる"
+        },
+        {
+          "key": "C",
+          "text": "各リソースグループにポリシーを割り当てる"
+        },
+        {
+          "key": "D",
+          "text": "Azure Policy Initiativeを作成する"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\n管理グループを使用することで、複数のサブスクリプションに対してポリシーを一度に適用でき、管理が効率的になります。\n\n**管理グループの利点:**\n- 一元管理: 1回の割り当てで複数サブスクリプションに適用\n- 継承: 子サブスクリプションに自動的に継承\n- 変更容易性: ポリシー変更が一箇所で済む",
+      "reference": "governance.tf"
+    },
+    {
+      "id": "d1-q5",
+      "domain": 1,
+      "number": 5,
+      "text": "ユーザーがKey Vaultからシークレットを読み取れるようにする必要がありますが、Key Vault自体の設定は変更できないようにしたいです。どのアクションを持つカスタムRBACロールを作成すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Microsoft.KeyVault/vaults/read および Microsoft.KeyVault/vaults/secrets/read"
+        },
+        {
+          "key": "B",
+          "text": "Microsoft.KeyVault/vaults/secrets/getSecret/action"
+        },
+        {
+          "key": "C",
+          "text": "Microsoft.KeyVault/vaults/*/read"
+        },
+        {
+          "key": "D",
+          "text": "Microsoft.KeyVault/vaults/read および Microsoft.KeyVault/vaults/secrets/*/read"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nシークレットの読み取りには、データプレーン操作の `getSecret/action` が必要です。\n\n**Key Vault の2つのプレーン:**\n- **管理プレーン**: Key Vault自体の管理（作成、削除、設定変更）\n- **データプレーン**: シークレット、キー、証明書の操作\n\n**必要なアクション:**\n- `Microsoft.KeyVault/vaults/read`: Key Vaultのメタデータ読み取り\n- `Microsoft.KeyVault/vaults/secrets/getSecret/action`: シークレット値の取得",
+      "reference": "keyvault.tf"
+    },
+    {
+      "id": "d1-q6",
+      "domain": 1,
+      "number": 6,
+      "text": "Azure Policyを使用して、すべてのVMにMicrosoft Monitoring Agentがインストールされていることを確認し、インストールされていない場合は自動的にインストールしたいです。どのポリシー効果を使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Append"
+        },
+        {
+          "key": "B",
+          "text": "Deny"
+        },
+        {
+          "key": "C",
+          "text": "DeployIfNotExists"
+        },
+        {
+          "key": "D",
+          "text": "AuditIfNotExists"
+        }
+      ],
+      "answer": "C",
+      "explanation": "**解説:**\n**DeployIfNotExists**: 条件（エージェント未インストール）に該当する場合、自動的にリソース（VM拡張機能）をデプロイします。\n\n**各効果の違い:**\n- **DeployIfNotExists**: 不足しているリソースを自動作成\n- **AuditIfNotExists**: 不足を検出するだけ（修復はしない）\n- **Append**: プロパティ追加のみ（新規リソース作成は不可）\n- **Deny**: 作成を拒否（自動デプロイはしない）\n\n**修復タスク:**\n既存のリソースに対しては、修復タスクを手動で実行する必要があります。",
+      "reference": "virtual_machines.tf"
+    },
+    {
+      "id": "d2-q1",
+      "domain": 2,
+      "number": 1,
+      "text": "会社のコンプライアンス要件により、監査ログを最低7年間保存し、その間変更や削除ができないようにする必要があります。どのAzure Storage機能を使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Blob の論理削除（保持期間365日）"
+        },
+        {
+          "key": "B",
+          "text": "時間ベースの保持ポリシー（不変ストレージ）"
+        },
+        {
+          "key": "C",
+          "text": "Blob バージョニング"
+        },
+        {
+          "key": "D",
+          "text": "ライフサイクル管理ポリシー"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\n不変ストレージのWORM（Write Once, Read Many）機能により、指定期間中はBlobの変更・削除が不可能になります。\n\n**各オプションの比較:**\n- **時間ベースの保持ポリシー**: 指定期間（最大146,000日≈400年）変更・削除不可\n- **論理削除**: 最大365日、削除は可能（復元可能期間）\n- **バージョニング**: 変更履歴を保持するが、削除は可能\n- **ライフサイクル管理**: 自動削除・移動であり、保護機能ではない\n\n**コンプライアンス:**\nSEC 17a-4(f)、HIPAA、FINRAなどの規制要件に対応",
+      "reference": "storage.tf"
+    },
+    {
+      "id": "d2-q2",
+      "domain": 2,
+      "number": 2,
+      "text": "日本のユーザー向けWebアプリケーションで、静的コンテンツ（画像・CSS）を配信するストレージアカウントを作成します。可用性ゾーン障害に対応し、コストを抑えたい場合、どの冗長性オプションを選択すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "LRS"
+        },
+        {
+          "key": "B",
+          "text": "ZRS"
+        },
+        {
+          "key": "C",
+          "text": "GRS"
+        },
+        {
+          "key": "D",
+          "text": "RA-GZRS"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nZRS（Zone Redundant Storage）は、同一リージョン内の3つの可用性ゾーンにデータを分散し、ゾーン障害に対応します。\n\n**要件分析:**\n- 可用性ゾーン障害対応: ZRS または GZRS/RA-GZRS\n- コスト抑制: ZRS（GRS系より安価）\n- リージョン間冗長性不要: 日本のユーザー向けのみ\n\n**コスト比較（概算）:**\nLRS < ZRS < GRS < RA-GRS < GZRS < RA-GZRS",
+      "reference": "storage.tf"
+    },
+    {
+      "id": "d2-q3",
+      "domain": 2,
+      "number": 3,
+      "text": "ストレージアカウントのBlobに対して、特定のサードパーティアプリケーションに一時的な書き込みアクセス権を付与する必要があります。ストレージアカウントキーを共有せず、最もセキュアな方法は？",
+      "options": [
+        {
+          "key": "A",
+          "text": "ストレージアカウントキーを提供"
+        },
+        {
+          "key": "B",
+          "text": "User Delegation SAS を生成"
+        },
+        {
+          "key": "C",
+          "text": "アカウント全体に対するContributor ロールを割り当て"
+        },
+        {
+          "key": "D",
+          "text": "パブリックアクセスを有効化"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nUser Delegation SASは、Entra ID資格情報で保護され、ストレージアカウントキーを使用しないため最もセキュアです。\n\n**セキュリティ比較:**\n1. **User Delegation SAS**: Entra ID認証、きめ細かい権限、有効期限設定可\n2. **Service/Account SAS**: アカウントキーベース、User Delegationより劣る\n3. **ストレージアカウントキー**: 完全なアクセス権（危険）\n4. **RBAC ロール**: 一時的なアクセスに不向き\n5. **パブリックアクセス**: 誰でもアクセス可能（最も危険）\n\n**SAS のベストプラクティス:**\n- 最小限の権限\n- 短い有効期限\n- IP制限の使用\n- HTTPS のみ許可",
+      "reference": "storage.tf"
+    },
+    {
+      "id": "d2-q4",
+      "domain": 2,
+      "number": 4,
+      "text": "アプリケーションログを保存するストレージアカウントがあります。ログは作成後30日間は頻繁にアクセスされますが、その後はほとんどアクセスされません。ただし、監査のため2年間は保持する必要があります。最もコスト効率の良い構成は？",
+      "options": [
+        {
+          "key": "A",
+          "text": "すべてのログをHot層に保存"
+        },
+        {
+          "key": "B",
+          "text": "ライフサイクル管理で、30日後にCool層、90日後にArchive層に移動"
+        },
+        {
+          "key": "C",
+          "text": "すべてのログをArchive層に保存"
+        },
+        {
+          "key": "D",
+          "text": "30日後に手動でCool層に移動"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nライフサイクル管理ポリシーにより、アクセスパターンに応じて自動的に適切な層に移動できます。\n\n**アクセス層の使い分け:**\n- **0-30日**: Hot層（頻繁なアクセス）\n- **30-90日**: Cool層（月1回程度のアクセス）\n- **90日以降**: Archive層（ほとんどアクセスなし、長期保存）\n\n**コスト構造:**\n- ストレージコスト: Hot > Cool > Archive\n- アクセスコスト: Hot < Cool < Archive\n- 最低保存期間: Hot なし、Cool 30日、Archive 180日",
+      "reference": "storage.tf"
+    },
+    {
+      "id": "d2-q5",
+      "domain": 2,
+      "number": 5,
+      "text": "オンプレミスのファイルサーバーをAzureに移行し、SMBプロトコルで既存のアプリケーションから引き続きアクセスできるようにする必要があります。どのAzure サービスを使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Azure Blob Storage"
+        },
+        {
+          "key": "B",
+          "text": "Azure Files"
+        },
+        {
+          "key": "C",
+          "text": "Azure Disk Storage"
+        },
+        {
+          "key": "D",
+          "text": "Azure Data Lake Storage Gen2"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nAzure Filesは、SMBおよびNFSプロトコルをサポートする唯一のストレージサービスで、既存のファイル共有アプリケーションとの互換性があります。\n\n**各サービスの特性:**\n- **Azure Files**: SMB/NFS、ファイル共有、リフト&シフトに最適\n- **Blob Storage**: REST API、オブジェクトストレージ、SMB非対応\n- **Disk Storage**: VMディスク専用、共有アクセス不可\n- **Data Lake Gen2**: ビッグデータ分析用、階層的名前空間\n\n**Azure File Sync:**\nオンプレミスとのハイブリッド構成も可能で、段階的な移行に有効",
+      "reference": "storage.tf"
+    },
+    {
+      "id": "d2-q6",
+      "domain": 2,
+      "number": 6,
+      "text": "ストレージアカウントへのアクセスを特定の仮想ネットワークからのみ許可し、パブリックインターネットからのアクセスを完全にブロックしたいです。どの機能を組み合わせて使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "ストレージファイアウォールでデフォルトアクションをDenyに設定し、VNetサービスエンドポイントを構成"
+        },
+        {
+          "key": "B",
+          "text": "NSGでストレージアカウントへのトラフィックを制御"
+        },
+        {
+          "key": "C",
+          "text": "Azure Policyでパブリックアクセスを拒否"
+        },
+        {
+          "key": "D",
+          "text": "すべてのBlobコンテナーをプライベートに設定"
+        }
+      ],
+      "answer": "A",
+      "explanation": "**解説:**\nストレージアカウントのネットワーク規則により、アクセスを特定のVNetに制限できます。\n\n**ネットワークセキュリティの階層:**\n1. **ストレージファイアウォール**: アカウントレベルのアクセス制御\n   - デフォルトアクション: Deny\n   - 許可: 特定のVNet/サブネット\n   - 例外: Azure Servicesなど\n\n2. **サービスエンドポイント**: VNetからストレージへの最適化されたルート\n\n3. **プライベートエンドポイント**: より高度なセキュリティ（VNet内にプライベートIP）\n\n**その他のオプションが不適切な理由:**\n- NSG: ストレージアカウント自体には適用不可（VM等のNICに適用）\n- Azure Policy: 設定を強制するが、実際のトラフィック制御は行わない\n- コンテナーのプライベート設定: 匿名アクセスの制御のみ",
+      "reference": "storage.tf"
+    },
+    {
+      "id": "d3-q1",
+      "domain": 3,
+      "number": 1,
+      "text": "Webアプリケーションを可用性ゾーンに展開し、99.99%のSLAを達成する必要があります。3つの可用性ゾーンにVMを配置する場合、最小で何台のVMが必要ですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "1台"
+        },
+        {
+          "key": "B",
+          "text": "2台"
+        },
+        {
+          "key": "C",
+          "text": "3台"
+        },
+        {
+          "key": "D",
+          "text": "6台"
+        }
+      ],
+      "answer": "C",
+      "explanation": "**解説:**\n99.99%のSLAを達成するには、可用性ゾーンを使用する必要があり、少なくとも2つ以上のゾーンにVMを配置する必要があります。ベストプラクティスとして、3つすべてのゾーンに配置することで、最高の可用性と耐障害性を実現します。\n\n**可用性ゾーンのSLA:**\n- 2つ以上のゾーンにVMを配置: 99.99% SLA\n- 各ゾーンに1台ずつ配置することで、1つのゾーンが停止しても他のゾーンで継続稼働\n\n**構成例:**\n- ゾーン1: VM1\n- ゾーン2: VM2\n- ゾーン3: VM3\n- ロードバランサー（ゾーン冗長）で分散",
+      "reference": "virtual_machines.tf"
+    },
+    {
+      "id": "d3-q2",
+      "domain": 3,
+      "number": 2,
+      "text": "App Serviceで新しいバージョンのアプリケーションをダウンタイムなしでデプロイしたいです。どの機能を使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "カスタムドメイン"
+        },
+        {
+          "key": "B",
+          "text": "デプロイスロット"
+        },
+        {
+          "key": "C",
+          "text": "自動スケーリング"
+        },
+        {
+          "key": "D",
+          "text": "VNet統合"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nデプロイスロット機能により、新バージョンをステージング環境でテストした後、本番スロットとスワップすることで、ダウンタイムなしでデプロイできます。\n\n**デプロイスロットのワークフロー:**\n1. ステージングスロットに新バージョンをデプロイ\n2. ステージング環境でテスト・検証\n3. 本番スロットとステージングスロットをスワップ\n4. 問題があればスワップをロールバック\n\n**必要条件:**\n- Standard、Premium、またはIsolated App Serviceプラン\n- スロット数の上限はプランにより異なる（Standard: 5, Premium: 20）",
+      "reference": "app_service.tf"
+    },
+    {
+      "id": "d3-q3",
+      "domain": 3,
+      "number": 3,
+      "text": "VMのOSディスクに使用するストレージタイプを選択する必要があります。本番環境のデータベースサーバーで、高いIOPSと低遅延が求められます。どのディスクタイプが最適ですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Standard HDD"
+        },
+        {
+          "key": "B",
+          "text": "Standard SSD"
+        },
+        {
+          "key": "C",
+          "text": "Premium SSD"
+        },
+        {
+          "key": "D",
+          "text": "Ultra Disk"
+        }
+      ],
+      "answer": "C",
+      "explanation": "**解説:**\n本番環境のデータベースには、Premium SSD以上が推奨されます。Ultra Diskは最高性能ですが、コストも最高です。\n\n**ディスクタイプの選択基準:**\n\n**Premium SSD (推奨):**\n- IOPS: 最大20,000\n- 遅延: 一桁ミリ秒\n- コスト: 中〜高\n- 用途: ほとんどの本番データベース\n\n**Ultra Disk:**\n- IOPS: 最大160,000\n- 遅延: サブミリ秒\n- コスト: 最高\n- 用途: SAP HANA等の超高性能要件\n\n**一般的な選択:**\n- 開発/テスト: Standard SSD\n- 本番Web: Premium SSD\n- 本番DB: Premium SSD\n- ミッションクリティカルDB: Ultra Disk",
+      "reference": "virtual_machines.tf"
+    },
+    {
+      "id": "d3-q4",
+      "domain": 3,
+      "number": 4,
+      "text": "VMSSで自動スケーリングを構成しています。平日の営業時間（9:00-18:00）は最低5インスタンス、それ以外の時間は最低2インスタンスで運用したいです。どのタイプの自動スケーリングルールを使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "メトリックベースのスケーリングのみ"
+        },
+        {
+          "key": "B",
+          "text": "スケジュールベースのスケーリングのみ"
+        },
+        {
+          "key": "C",
+          "text": "メトリックベースとスケジュールベースの両方"
+        },
+        {
+          "key": "D",
+          "text": "手動スケーリング"
+        }
+      ],
+      "answer": "C",
+      "explanation": "**解説:**\n時間帯による要件変更にはスケジュールベース、トラフィックの変動にはメトリックベースを組み合わせます。\n\n**自動スケーリングプロファイルの構成:**\n\n**デフォルトプロファイル（営業時間外）:**\n- 最小: 2インスタンス\n- 最大: 10インスタンス\n- メトリック: CPU使用率 > 70% でスケールアウト\n\n**営業時間プロファイル:**\n- 最小: 5インスタンス\n- 最大: 20インスタンス\n- スケジュール: 平日 9:00-18:00\n- メトリック: CPU使用率 > 70% でスケールアウト\n\n**動作:**\n- 9:00になると自動的に5インスタンスに増加\n- トラフィック増加時はメトリックに基づいて追加スケール\n- 18:00になると2インスタンスまで減少（トラフィック次第）",
+      "reference": "app_service.tf"
+    },
+    {
+      "id": "d3-q5",
+      "domain": 3,
+      "number": 5,
+      "text": "Container RegistryからApp Serviceにコンテナイメージをデプロイする際、安全に認証を行う方法として最も推奨されるのはどれですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "ACRの管理者アカウントを有効化してユーザー名/パスワードを使用"
+        },
+        {
+          "key": "B",
+          "text": "App ServiceのマネージドIDを使用してACRにアクセス"
+        },
+        {
+          "key": "C",
+          "text": "ACRのアクセスキーをApp Serviceの環境変数に保存"
+        },
+        {
+          "key": "D",
+          "text": "パブリックアクセスを有効化"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nマネージドIDを使用することで、資格情報を管理する必要がなく、最もセキュアです。\n\n**マネージドIDによるACRアクセスの手順:**\n\n1. **App ServiceでシステムマネージドIDを有効化**\n   ```hcl\n   identity {\n     type = \"SystemAssigned\"\n   }\n   ```\n\n2. **ACRにAcrPullロールを割り当て**\n   ```hcl\n   resource \"azurerm_role_assignment\" \"acr_pull\" {\n     scope                = azurerm_container_registry.main.id\n     role_definition_name = \"AcrPull\"\n     principal_id         = azurerm_linux_web_app.main.identity[0].principal_id\n   }\n   ```\n\n3. **App ServiceでACRを指定**\n   - 資格情報は自動的に取得される\n\n**セキュリティ比較:**\n- マネージドID: ✓ 資格情報管理不要、最もセキュア\n- 管理者アカウント: ✗ 非推奨、フルアクセス\n- アクセスキー: ✗ ローテーション必要、漏洩リスク\n- パブリックアクセス: ✗ 誰でもアクセス可能",
+      "reference": "acr.tf"
+    },
+    {
+      "id": "d3-q6",
+      "domain": 3,
+      "number": 6,
+      "text": "本番環境のVMで計画メンテナンスが発生しても、サービスが中断されないようにする必要があります。最も適切な構成は？",
+      "options": [
+        {
+          "key": "A",
+          "text": "単一VMをPremium SSDで構成"
+        },
+        {
+          "key": "B",
+          "text": "可用性セットに2台以上のVMを配置"
+        },
+        {
+          "key": "C",
+          "text": "可用性ゾーンに1台のVMを配置"
+        },
+        {
+          "key": "D",
+          "text": "2台のVMを同じラックに配置"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\n可用性セットの更新ドメイン機能により、計画メンテナンス時に一度に1つの更新ドメインのみが再起動されます。\n\n**可用性セットの更新ドメイン:**\n- 計画メンテナンス時の保護機能\n- 最大20の更新ドメイン\n- 同時に1つのUDのみ更新\n- 次のUDの更新まで30分の待機時間\n\n**構成例:**\n```\n更新ドメイン 0: VM1\n更新ドメイン 1: VM2\n更新ドメイン 2: VM3\n\n計画メンテナンス:\n1. UD 0のVMを再起動（VM2, VM3は稼働中）\n2. 30分待機\n3. UD 1のVMを再起動（VM1, VM3は稼働中）\n4. 30分待機\n5. UD 2のVMを再起動（VM1, VM2は稼働中）\n```\n\n**他のオプション:**\n- A) 単一VM: メンテナンス時にダウンタイム発生\n- C) 可用性ゾーン: 計画外障害には強いが、計画メンテナンス対策には可用性セットが適切\n- D) 同じラック: 障害ドメインが同じで、ラック障害時に全滅",
+      "reference": "virtual_machines.tf"
+    },
+    {
+      "id": "d4-q1",
+      "domain": 4,
+      "number": 1,
+      "text": "WebサーバーのサブネットにNSGを適用しています。インターネットからHTTPS（ポート443）を許可し、その他すべてのインバウンド通信を拒否したいです。最小限のルールで実現する方法は？",
+      "options": [
+        {
+          "key": "A",
+          "text": "優先度100でHTTPSを許可するルールのみ作成"
+        },
+        {
+          "key": "B",
+          "text": "優先度100でHTTPSを許可、優先度200ですべて拒否"
+        },
+        {
+          "key": "C",
+          "text": "優先度100でHTTPSを許可、デフォルトルールで拒否"
+        },
+        {
+          "key": "D",
+          "text": "すべてのポートを個別に拒否するルールを作成"
+        }
+      ],
+      "answer": "A",
+      "explanation": "**解説:**\nNSGにはデフォルトで「DenyAllInBound」ルール（優先度65500）があり、明示的に許可されていないトラフィックはすべて拒否されます。\n\n**ルール評価の流れ:**\n1. 優先度100: Allow HTTPS（マッチ → 許可）\n2. 優先度65000: AllowVNetInBound（VNet内通信は許可）\n3. 優先度65001: AllowAzureLB（Azure LB からの通信許可）\n4. 優先度65500: DenyAllInBound（その他すべて拒否）\n\n**ベストプラクティス:**\n- 必要な許可ルールのみを明示的に作成\n- デフォルトルールを活用\n- 不要な拒否ルールは作成しない",
+      "reference": "network.tf"
+    },
+    {
+      "id": "d4-q2",
+      "domain": 4,
+      "number": 2,
+      "text": "東日本リージョンのVNet A（10.0.0.0/16）と西日本リージョンのVNet B（10.1.0.0/16）を接続し、VNet A のVMからVNet B のVMへプライベートIPで通信できるようにしたいです。どの機能を使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "VPNゲートウェイ"
+        },
+        {
+          "key": "B",
+          "text": "ExpressRoute"
+        },
+        {
+          "key": "C",
+          "text": "グローバルVNetピアリング"
+        },
+        {
+          "key": "D",
+          "text": "ルートテーブル"
+        }
+      ],
+      "answer": "C",
+      "explanation": "**解説:**\n異なるリージョン間のVNetを接続するには、グローバルVNetピアリングを使用します。\n\n**VNetピアリングの特徴:**\n- リージョン内ピアリング: 同一リージョン内のVNet接続\n- グローバルVNetピアリング: 異なるリージョンのVNet接続\n- Azureバックボーンネットワーク使用（インターネット経由ではない）\n- 低遅延、高帯域幅\n- プライベートIPアドレスで通信\n\n**他のオプションとの比較:**\n- VPNゲートウェイ: VNet間接続も可能だが、ピアリングより複雑で遅い\n- ExpressRoute: オンプレミス接続用（VNet間にも使用可能だが高コスト）\n- ルートテーブル: ルーティングのみ、接続は確立しない\n\n**設定手順:**\n1. VNet A → VNet B のピアリング作成\n2. VNet B → VNet A のピアリング作成（双方向必須）",
+      "reference": "network.tf"
+    },
+    {
+      "id": "d4-q3",
+      "domain": 4,
+      "number": 3,
+      "text": "WebアプリケーションにWAF保護を追加し、SQLインジェクションやXSS攻撃から保護したいです。どのAzureサービスを使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Azure Load Balancer"
+        },
+        {
+          "key": "B",
+          "text": "Network Security Group (NSG)"
+        },
+        {
+          "key": "C",
+          "text": "Application Gateway with WAF"
+        },
+        {
+          "key": "D",
+          "text": "Azure Firewall"
+        }
+      ],
+      "answer": "C",
+      "explanation": "**解説:**\nApplication GatewayのWAF SKUは、OWASP Top 10の脆弱性から保護します。\n\n**WAFの保護機能:**\n- SQLインジェクション\n- クロスサイトスクリプティング（XSS）\n- コマンドインジェクション\n- HTTPリクエストスマグリング\n- HTTPレスポンススプリッティング\n- リモートファイルインクルージョン\n- ボット攻撃\n\n**WAFモード:**\n- **検出モード**: 脅威を検出してログ記録（ブロックしない）\n- **防止モード**: 脅威を検出してブロック\n\n**マネージドルールセット:**\n- OWASP Core Rule Set (CRS) 3.2, 3.1, 3.0\n- Microsoft Bot Manager Rule Set\n\n**他のオプション:**\n- Load Balancer: レイヤー4、WAF機能なし\n- NSG: レイヤー3/4、アプリケーション層の保護不可\n- Azure Firewall: ネットワークレベルの保護、WAFではない",
+      "reference": "frontdoor.tf"
+    },
+    {
+      "id": "d4-q4",
+      "domain": 4,
+      "number": 4,
+      "text": "ストレージアカウントへのアクセスを特定のVNetからのみ許可し、パブリックインターネットからのアクセスを完全にブロックしたいです。オンプレミスネットワークからもVPN経由でアクセスできる必要があります。どの機能を使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "サービスエンドポイント"
+        },
+        {
+          "key": "B",
+          "text": "プライベートエンドポイント"
+        },
+        {
+          "key": "C",
+          "text": "NSG"
+        },
+        {
+          "key": "D",
+          "text": "ストレージファイアウォールのみ"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nプライベートエンドポイントを使用すると、VNet内にプライベートIPアドレスが割り当てられ、オンプレミスからもVPN/ExpressRoute経由でアクセス可能です。\n\n**プライベートエンドポイントの利点:**\n- VNet内にプライベートIP割り当て\n- パブリックアクセス完全無効化可能\n- オンプレミスからアクセス可能（VPN/ExpressRoute経由）\n- Private DNS Zone統合で名前解決も容易\n- クロスリージョン対応\n\n**サービスエンドポイントとの比較:**\n| 要件 | サービスEP | プライベートEP |\n|------|------------|----------------|\n| VNet内アクセス | ✓ | ✓ |\n| オンプレミスアクセス | ✗ | ✓（VPN/ER経由）|\n| パブリックIP | 使用 | 不使用 |\n| コスト | 無料 | 有料 |\n\n**構成例:**\n```\nオンプレミス\n    ↓ VPN Gateway\nVNet (10.0.0.0/16)\n    ↓ Private Subnet (10.0.1.0/24)\nPrivate Endpoint (10.0.1.5)\n    ↓ Private Link\nStorage Account\n```",
+      "reference": "network.tf"
+    },
+    {
+      "id": "d4-q5",
+      "domain": 4,
+      "number": 5,
+      "text": "3台のWebサーバーVMにトラフィックを分散したいです。各VMの正常性を監視し、異常があるVMにはトラフィックを送信しないようにする必要があります。レイヤー4での負荷分散が要件です。どのリソースを構成する必要がありますか？（2つ選択）",
+      "options": [
+        {
+          "key": "A",
+          "text": "Application Gateway"
+        },
+        {
+          "key": "B",
+          "text": "Load Balancer"
+        },
+        {
+          "key": "C",
+          "text": "正常性プローブ"
+        },
+        {
+          "key": "D",
+          "text": "NSG"
+        },
+        {
+          "key": "E",
+          "text": "Traffic Manager"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nレイヤー4の負荷分散にはLoad Balancerを使用し、正常性プローブで各VMの状態を監視します。\n\n**Load Balancerの構成要素:**\n\n1. **フロントエンドIP**: クライアントからのアクセスポイント\n2. **バックエンドプール**: 負荷分散先のVM群\n3. **正常性プローブ**: VMの正常性チェック\n   - プロトコル: HTTP, HTTPS, TCP\n   - パス: /health（HTTP/HTTPS）\n   - 間隔: 15秒（デフォルト）\n   - しきい値: 2回失敗で異常判定\n4. **負荷分散ルール**: フロントエンドとバックエンドのマッピング\n\n**正常性プローブの動作:**\n```\nプローブ送信（15秒ごと）\n    ↓\nVM1: 200 OK → 正常（トラフィック送信）\nVM2: 500 Error → 異常カウント+1\nVM3: タイムアウト → 異常カウント+1\n    ↓\nVM2: 2回連続失敗 → バックエンドプールから除外\n```\n\n**他のオプション:**\n- Application Gateway: レイヤー7（要件に不一致）\n- NSG: セキュリティルール（負荷分散ではない）\n- Traffic Manager: DNS ベースの負荷分散（レイヤー7）",
+      "reference": "load_balancer.tf"
+    },
+    {
+      "id": "d5-q1",
+      "domain": 5,
+      "number": 1,
+      "text": "WebアプリケーションのHTTP 500エラーが過去5分間に10回以上発生した場合に管理者にメール通知したいです。どの種類のアラートを使用すべきですか?",
+      "options": [
+        {
+          "key": "A",
+          "text": "メトリックアラート"
+        },
+        {
+          "key": "B",
+          "text": "ログアラート"
+        },
+        {
+          "key": "C",
+          "text": "アクティビティログアラート"
+        },
+        {
+          "key": "D",
+          "text": "サービス正常性アラート"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nApplication Insightsのリクエストログを KQLでクエリし、条件に基づいてアラートを発生させます。\n\n**ログアラートのKQLクエリ例:**\n```kql\nrequests\n| where timestamp > ago(5m)\n| where resultCode == \"500\"\n| summarize count()\n| where count_ > 10\n```\n\n**アラートタイプの選択基準:**\n- **ログアラート**: 複雑な条件、ログデータのクエリ、特定のエラーパターン\n- **メトリックアラート**: シンプルな数値条件、リアルタイム性重視\n- **アクティビティログアラート**: リソースの操作（作成、削除等）監視\n- **サービス正常性アラート**: Azureサービスの障害通知\n\n**構成要素:**\n1. KQLクエリで条件定義\n2. 評価頻度: 5分\n3. しきい値: count > 10\n4. アクショングループでメール送信",
+      "reference": "monitoring.tf"
+    },
+    {
+      "id": "d5-q2",
+      "domain": 5,
+      "number": 2,
+      "text": "VMのバックアップを構成しています。日次バックアップを30日保持し、毎週日曜日のバックアップを12週間保持したいです。どのリソースで設定しますか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Azure Backup Agent"
+        },
+        {
+          "key": "B",
+          "text": "Backup Policy"
+        },
+        {
+          "key": "C",
+          "text": "Recovery Services Vault"
+        },
+        {
+          "key": "D",
+          "text": "スナップショット"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nバックアップポリシーで、スケジュール、保持期間、インスタント復元の設定を定義します。\n\n**バックアップポリシーの構成要素:**\n\n1. **スケジュール:**\n   - 頻度: 毎日\n   - 時刻: 23:00（例）\n\n2. **保持期間:**\n   - 日次: 30日\n   - 週次: 12週（毎週日曜日）\n   - 月次: 12ヶ月（オプション）\n   - 年次: 10年（オプション）\n\n3. **インスタント復元:**\n   - スナップショット保持: 2-5日\n   - 高速復元\n\n**Terraform設定例:**\n```hcl\nresource \"azurerm_backup_policy_vm\" \"daily\" {\n  backup {\n    frequency = \"Daily\"\n    time      = \"23:00\"\n  }\n\n  retention_daily {\n    count = 30\n  }\n\n  retention_weekly {\n    count    = 12\n    weekdays = [\"Sunday\"]\n  }\n}\n```",
+      "reference": "disaster_recovery.tf"
+    },
+    {
+      "id": "d5-q3",
+      "domain": 5,
+      "number": 3,
+      "text": "複数のAzureリソース（VM、ストレージアカウント、App Service）のログを一元的に分析したいです。どのサービスを使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Azure Monitor メトリック"
+        },
+        {
+          "key": "B",
+          "text": "Log Analytics ワークスペース"
+        },
+        {
+          "key": "C",
+          "text": "Application Insights"
+        },
+        {
+          "key": "D",
+          "text": "Azure Storage Account"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nLog Analytics ワークスペースは、複数のリソースからログを収集し、KQLで横断的に分析できます。\n\n**Log Analytics の利点:**\n- クロスリソースクエリ\n- 統一されたクエリ言語（KQL）\n- 長期保存（最大730日）\n- 統合された可視化（Workbooks）\n\n**構成手順:**\n1. Log Analytics ワークスペース作成\n2. 各リソースで診断設定を構成\n3. 送信先としてワークスペースを指定\n\n**クロスリソースクエリの例:**\n```kql\n// VMとApp Serviceの両方からエラーを検索\nunion\n    (AzureDiagnostics | where ResourceType == \"VIRTUALMACHINES\"),\n    (AppServiceHTTPLogs | where ScStatus >= 400)\n| where TimeGenerated > ago(1h)\n| project TimeGenerated, ResourceType, Message\n| order by TimeGenerated desc\n```\n\n**ベストプラクティス:**\n- 単一ワークスペースで複数リソース管理（推奨）\n- 環境ごとの分離が必要な場合は別ワークスペース\n- RBAC でアクセス制御",
+      "reference": "monitoring.tf"
+    },
+    {
+      "id": "d5-q4",
+      "domain": 5,
+      "number": 4,
+      "text": "東日本リージョンで稼働中のVMを、リージョン障害時に西日本リージョンで復旧できるようにしたいです。どのサービスを使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Azure Backup"
+        },
+        {
+          "key": "B",
+          "text": "Azure Site Recovery"
+        },
+        {
+          "key": "C",
+          "text": "Geo冗長ストレージ"
+        },
+        {
+          "key": "D",
+          "text": "可用性ゾーン"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nAzure Site Recovery (ASR) は、VMを別リージョンに継続的にレプリケートし、障害時のフェイルオーバーを実現します。\n\n**ASR vs Backup:**\n\n| 機能 | Azure Site Recovery | Azure Backup |\n|------|---------------------|--------------|\n| 目的 | DR（災害復旧） | データ保護 |\n| RPO | 数分 | 24時間 |\n| RTO | 数時間 | 数時間〜数日 |\n| レプリケーション | 継続的 | スケジュール |\n| フェイルオーバー | 自動/手動 | 手動復元 |\n\n**ASRの構成:**\n```\nプライマリリージョン（東日本）\n    ↓ 継続的レプリケーション\nセカンダリリージョン（西日本）\n    ↓ フェイルオーバー\nDR環境でVM起動\n```\n\n**フェイルオーバーの流れ:**\n1. レプリケーションポリシー設定（RPO、復旧ポイント保持）\n2. 復旧計画作成（起動順序、スクリプト）\n3. テストフェイルオーバーで検証\n4. 障害時に本番フェイルオーバー実行\n\n**他のオプション:**\n- Backup: データ保護用、DRには不向き\n- GRS: ストレージアカウントの冗長性（VMには不十分）\n- 可用性ゾーン: 同一リージョン内の高可用性",
+      "reference": "disaster_recovery.tf"
+    },
+    {
+      "id": "d5-q5",
+      "domain": 5,
+      "number": 5,
+      "text": "Application Insightsで収集したデータのコストを削減したいです。すべてのテレメトリではなく、一部のみを収集する方法は？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Application Insightsを無効化"
+        },
+        {
+          "key": "B",
+          "text": "サンプリングを構成"
+        },
+        {
+          "key": "C",
+          "text": "Log Analytics ワークスペースを削除"
+        },
+        {
+          "key": "D",
+          "text": "診断設定を無効化"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nサンプリングにより、データの代表的なサンプルのみを収集し、コストを削減できます。\n\n**サンプリングの種類:**\n\n**1. インジェストサンプリング（推奨）:**\n- Application Insights側で実施\n- すべてのSDKで動作\n- 最も簡単な設定\n\n**2. アダプティブサンプリング:**\n- SDK側で自動調整\n- トラフィック量に応じて動的にサンプリング率を変更\n- .NET、Java、Node.js、Python\n\n**3. 固定率サンプリング:**\n- SDK側で固定のサンプリング率\n- より細かい制御\n\n**設定例（Terraform）:**\n```hcl\nresource \"azurerm_application_insights\" \"main\" {\n  sampling_percentage = 50  # 50%のデータを収集\n}\n```\n\n**サンプリングの考慮事項:**\n- メトリックは影響を受けない（カウントは自動調整）\n- 検索・分析時にサンプリング率が考慮される\n- 重要なイベントはサンプリング対象外に設定可能\n\n**コスト削減のその他の方法:**\n- 日次データ上限設定\n- 不要なテレメトリフィルタリング\n- 適切なデータ保持期間設定",
+      "reference": "monitoring.tf"
+    },
+    {
+      "id": "d5-q6",
+      "domain": 5,
+      "number": 6,
+      "text": "Log Analytics ワークスペースのデータ保持期間を180日から365日に変更したいです。追加コストが発生するのは何日目以降ですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "30日目以降"
+        },
+        {
+          "key": "B",
+          "text": "31日目以降"
+        },
+        {
+          "key": "C",
+          "text": "180日目以降"
+        },
+        {
+          "key": "D",
+          "text": "365日目以降"
+        }
+      ],
+      "answer": "B",
+      "explanation": "**解説:**\nLog Analytics ワークスペースでは、最初の30日間のデータ保持は無料です。31日目以降は追加料金が発生します。\n\n**Log Analytics の価格構造:**\n\n**データインジェスト:**\n- 最初の5GB/日: 無料\n- 以降: $2.76/GB（東日本リージョン、概算）\n\n**データ保持:**\n- 0-30日: 無料\n- 31-730日: $0.12/GB/月（概算）\n\n**例: 365日保持の場合:**\n```\n100GB のデータを365日保持:\n- 0-30日: 無料\n- 31-365日: 100GB × $0.12 × 11ヶ月 = $132\n```\n\n**コスト最適化のベストプラクティス:**\n1. 必要なログのみ収集\n2. 長期保存が不要なデータはフィルタリング\n3. アーカイブ用にStorage Accountを使用（診断設定で送信先追加）\n4. コミットメント層の検討（大量データの場合）\n\n**保持期間の変更:**\n```hcl\nresource \"azurerm_log_analytics_workspace\" \"main\" {\n  retention_in_days = 365  # 30, 60, 90...730\n}\n```",
+      "reference": "monitoring.tf"
+    },
+    {
+      "id": "mock-q1",
+      "domain": 0,
+      "number": 1,
+      "text": "サブスクリプション内のすべてのリソースに「CostCenter」タグを必須にし、タグがない場合はリソース作成を拒否したいです。どのAzure Policy効果を使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Audit"
+        },
+        {
+          "key": "B",
+          "text": "Deny"
+        },
+        {
+          "key": "C",
+          "text": "Append"
+        },
+        {
+          "key": "D",
+          "text": "Modify"
+        }
+      ],
+      "answer": "B",
+      "explanation": "リソース作成を拒否するには、Deny効果が必要です。Auditは記録のみ、Appendは自動追加、Modifyはプロパティ変更です。"
+    },
+    {
+      "id": "mock-q2",
+      "domain": 0,
+      "number": 2,
+      "text": "ストレージアカウントのデータを東日本と西日本の両方で読み取りアクセス可能にしたいです。どの冗長性オプションを選択すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "LRS"
+        },
+        {
+          "key": "B",
+          "text": "ZRS"
+        },
+        {
+          "key": "C",
+          "text": "GRS"
+        },
+        {
+          "key": "D",
+          "text": "RA-GRS"
+        }
+      ],
+      "answer": "D",
+      "explanation": "RA-GRS (Read-Access Geo-Redundant Storage) は、プライマリとセカンダリの両リージョンで読み取りアクセスが可能です。GRSはセカンダリから読み取り不可です。"
+    },
+    {
+      "id": "mock-q3",
+      "domain": 0,
+      "number": 3,
+      "text": "VMのCPU使用率が過去5分間で平均80%を超えた場合にアラートを発生させたいです。どのメトリック集計方法を使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Maximum"
+        },
+        {
+          "key": "B",
+          "text": "Minimum"
+        },
+        {
+          "key": "C",
+          "text": "Average"
+        },
+        {
+          "key": "D",
+          "text": "Total"
+        }
+      ],
+      "answer": "C",
+      "explanation": "「過去5分間で平均80%」という条件のため、Average（平均）集計を使用します。"
+    },
+    {
+      "id": "mock-q4",
+      "domain": 0,
+      "number": 4,
+      "text": "可用性ゾーンに対応したLoad Balancerを作成する必要があります。どのSKUを選択すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Basic"
+        },
+        {
+          "key": "B",
+          "text": "Standard"
+        },
+        {
+          "key": "C",
+          "text": "Premium"
+        },
+        {
+          "key": "D",
+          "text": "Classic"
+        }
+      ],
+      "answer": "B",
+      "explanation": "可用性ゾーンに対応しているのはStandard SKUのみです。Basic SKUは可用性ゾーン非対応でSLAもありません。"
+    },
+    {
+      "id": "mock-q5",
+      "domain": 0,
+      "number": 5,
+      "text": "App ServiceでNode.jsアプリケーションをホストし、デプロイスロットを使用してステージング環境でテストしてから本番にデプロイしたいです。最低限必要なApp Serviceプランは？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Free"
+        },
+        {
+          "key": "B",
+          "text": "Basic"
+        },
+        {
+          "key": "C",
+          "text": "Standard"
+        },
+        {
+          "key": "D",
+          "text": "Premium"
+        }
+      ],
+      "answer": "C",
+      "explanation": "デプロイスロット機能はStandard以上のプランで利用可能です。Free、Shared、Basicではデプロイスロットは使用できません。"
+    },
+    {
+      "id": "mock-q6",
+      "domain": 0,
+      "number": 6,
+      "text": "VNet A（10.0.0.0/16）とVNet B（10.1.0.0/16）をピアリングしました。さらにVNet BとVNet C（10.2.0.0/16）もピアリングしています。VNet AからVNet Cへ通信できますか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "はい、自動的に通信可能"
+        },
+        {
+          "key": "B",
+          "text": "いいえ、VNetピアリングは非推移的"
+        },
+        {
+          "key": "C",
+          "text": "ゲートウェイトランジットを設定すれば可能"
+        },
+        {
+          "key": "D",
+          "text": "ルートテーブルを追加すれば可能"
+        }
+      ],
+      "answer": "B",
+      "explanation": "VNetピアリングは非推移的です。A-B、B-Cがピアリングされていても、AとCは通信できません。AとCの通信にはA-Cのピアリングが必要です。"
+    },
+    {
+      "id": "mock-q7",
+      "domain": 0,
+      "number": 7,
+      "text": "ストレージアカウントへのアクセスを特定のVNetからのみ許可し、オンプレミスからもVPN経由でアクセスできるようにしたいです。最も適切な方法は？",
+      "options": [
+        {
+          "key": "A",
+          "text": "サービスエンドポイント"
+        },
+        {
+          "key": "B",
+          "text": "プライベートエンドポイント"
+        },
+        {
+          "key": "C",
+          "text": "パブリックアクセス許可"
+        },
+        {
+          "key": "D",
+          "text": "ストレージファイアウォールのみ"
+        }
+      ],
+      "answer": "B",
+      "explanation": "プライベートエンドポイントを使用すると、オンプレミスからもVPN/ExpressRoute経由でアクセス可能です。サービスエンドポイントはVNet内のみです。"
+    },
+    {
+      "id": "mock-q8",
+      "domain": 0,
+      "number": 8,
+      "text": "VMのOSディスクに最高レベルのパフォーマンスと最低レイテンシが必要です。どのディスクタイプを選択すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Standard HDD"
+        },
+        {
+          "key": "B",
+          "text": "Standard SSD"
+        },
+        {
+          "key": "C",
+          "text": "Premium SSD"
+        },
+        {
+          "key": "D",
+          "text": "Ultra Disk"
+        }
+      ],
+      "answer": "D",
+      "explanation": "Ultra Diskは最高のIOPS（最大160,000）、スループット（最大4,000 MB/s）、最低レイテンシ（サブミリ秒）を提供します。"
+    },
+    {
+      "id": "mock-q9",
+      "domain": 0,
+      "number": 9,
+      "text": "Recovery Services Vaultでバックアップデータをセカンダリリージョンから復元できるようにしたいです。どの設定が必要ですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Geo-Redundant Storage"
+        },
+        {
+          "key": "B",
+          "text": "Cross Region Restore"
+        },
+        {
+          "key": "C",
+          "text": "AとB両方"
+        },
+        {
+          "key": "D",
+          "text": "Locally Redundant Storage"
+        }
+      ],
+      "answer": "C",
+      "explanation": "セカンダリリージョンから復元するには、ストレージをGeo-Redundantに設定し、Cross Region Restoreを有効にする必要があります。"
+    },
+    {
+      "id": "mock-q10",
+      "domain": 0,
+      "number": 10,
+      "text": "WebアプリケーションにWAF保護を追加し、グローバルに分散した複数のバックエンドに負荷分散したいです。どのサービスが最適ですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Azure Load Balancer"
+        },
+        {
+          "key": "B",
+          "text": "Application Gateway"
+        },
+        {
+          "key": "C",
+          "text": "Azure Front Door with WAF"
+        },
+        {
+          "key": "D",
+          "text": "Traffic Manager"
+        }
+      ],
+      "answer": "C",
+      "explanation": "Azure Front Doorはグローバルな負荷分散とWAF機能を提供します。Application Gatewayはリージョナル、Load Balancerはレイヤー4で WAF なし、Traffic ManagerはDNSベースでWAFなしです。"
+    },
+    {
+      "id": "mock-q11",
+      "domain": 0,
+      "number": 11,
+      "text": "NSGでHTTPSトラフィック（ポート443）のみを許可し、その他すべてを拒否したいです。明示的に拒否ルールを作成する必要がありますか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "はい、すべてのポートに対して拒否ルールが必要"
+        },
+        {
+          "key": "B",
+          "text": "いいえ、デフォルトルールで拒否される"
+        },
+        {
+          "key": "C",
+          "text": "はい、優先度を正しく設定する必要がある"
+        },
+        {
+          "key": "D",
+          "text": "はい、各プロトコルに対して拒否ルールが必要"
+        }
+      ],
+      "answer": "B",
+      "explanation": "NSGにはデフォルトで「DenyAllInBound」ルール（優先度65500）があり、明示的に許可されていないトラフィックは自動的に拒否されます。"
+    },
+    {
+      "id": "mock-q12",
+      "domain": 0,
+      "number": 12,
+      "text": "VMSSで営業時間（平日9-18時）は最低5インスタンス、それ以外は2インスタンスで運用したいです。どのスケーリングを使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "メトリックベースのみ"
+        },
+        {
+          "key": "B",
+          "text": "スケジュールベースのみ"
+        },
+        {
+          "key": "C",
+          "text": "両方の組み合わせ"
+        },
+        {
+          "key": "D",
+          "text": "手動スケーリング"
+        }
+      ],
+      "answer": "C",
+      "explanation": "スケジュールベースで時間帯による最小インスタンス数を設定し、メトリックベースでトラフィックに応じた追加スケーリングを行います。"
+    },
+    {
+      "id": "mock-q13",
+      "domain": 0,
+      "number": 13,
+      "text": "Application Insightsで可用性テストを構成し、東京、ニューヨーク、ロンドンから5分ごとにエンドポイントを監視したいです。どのテストタイプを使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "URLピングテスト"
+        },
+        {
+          "key": "B",
+          "text": "マルチステップWebテスト"
+        },
+        {
+          "key": "C",
+          "text": "TrackAvailability"
+        },
+        {
+          "key": "D",
+          "text": "カスタムメトリック"
+        }
+      ],
+      "answer": "A",
+      "explanation": "URLピングテスト（Standard Web Test）は、複数の地理的な場所から定期的にエンドポイントを監視するための最適な方法です。"
+    },
+    {
+      "id": "mock-q14",
+      "domain": 0,
+      "number": 14,
+      "text": "ストレージアカウントのBlobを作成後30日でCool層、90日でArchive層に自動移動したいです。どの機能を使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Blob バージョニング"
+        },
+        {
+          "key": "B",
+          "text": "ライフサイクル管理ポリシー"
+        },
+        {
+          "key": "C",
+          "text": "論理削除"
+        },
+        {
+          "key": "D",
+          "text": "不変ストレージ"
+        }
+      ],
+      "answer": "B",
+      "explanation": "ライフサイクル管理ポリシーにより、日数ベースでBlobを自動的に異なるアクセス層に移動または削除できます。"
+    },
+    {
+      "id": "mock-q15",
+      "domain": 0,
+      "number": 15,
+      "text": "Container RegistryからApp Serviceにコンテナをデプロイする際、最もセキュアな認証方法は？",
+      "options": [
+        {
+          "key": "A",
+          "text": "管理者アカウント"
+        },
+        {
+          "key": "B",
+          "text": "マネージドID"
+        },
+        {
+          "key": "C",
+          "text": "アクセスキー"
+        },
+        {
+          "key": "D",
+          "text": "パブリックアクセス"
+        }
+      ],
+      "answer": "B",
+      "explanation": "マネージドIDを使用すると、資格情報を管理する必要がなく、最もセキュアです。App ServiceにACRのAcrPullロールを割り当てます。"
+    },
+    {
+      "id": "mock-q16",
+      "domain": 0,
+      "number": 16,
+      "text": "東日本リージョンのVMを、障害時に西日本リージョンで数時間以内に復旧できるようにしたいです。どのサービスを使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "Azure Backup"
+        },
+        {
+          "key": "B",
+          "text": "Azure Site Recovery"
+        },
+        {
+          "key": "C",
+          "text": "Geo-Redundant Storage"
+        },
+        {
+          "key": "D",
+          "text": "スナップショット"
+        }
+      ],
+      "answer": "B",
+      "explanation": "Azure Site Recoveryは、VMを別リージョンに継続的にレプリケートし、障害時のフェイルオーバーを実現します（RTO: 数時間、RPO: 数分）。"
+    },
+    {
+      "id": "mock-q17",
+      "domain": 0,
+      "number": 17,
+      "text": "Log Analytics ワークスペースで過去1時間のHTTP 500エラーを検索するKQLクエリで使用する時間フィルターは？",
+      "options": [
+        {
+          "key": "A",
+          "text": "where timestamp > ago(1h)"
+        },
+        {
+          "key": "B",
+          "text": "where timestamp > now()-1h"
+        },
+        {
+          "key": "C",
+          "text": "where time > -1h"
+        },
+        {
+          "key": "D",
+          "text": "where datetime > 1h"
+        }
+      ],
+      "answer": "A",
+      "explanation": "KQLでは `ago()` 関数を使用して相対時間を指定します。`ago(1h)` は1時間前を意味します。"
+    },
+    {
+      "id": "mock-q18",
+      "domain": 0,
+      "number": 18,
+      "text": "可用性セットにVMを配置した場合のSLAは？",
+      "options": [
+        {
+          "key": "A",
+          "text": "99.9%"
+        },
+        {
+          "key": "B",
+          "text": "99.95%"
+        },
+        {
+          "key": "C",
+          "text": "99.99%"
+        },
+        {
+          "key": "D",
+          "text": "100%"
+        }
+      ],
+      "answer": "B",
+      "explanation": "可用性セットに2台以上のVMを配置した場合のSLAは99.95%です。単一VM（Premium SSD使用）は99.9%、可用性ゾーンは99.99%です。"
+    },
+    {
+      "id": "mock-q19",
+      "domain": 0,
+      "number": 19,
+      "text": "Azureリソースの作成/削除/変更などの管理操作を監視してアラートを発生させたいです。どの種類のアラートを使用すべきですか？",
+      "options": [
+        {
+          "key": "A",
+          "text": "メトリックアラート"
+        },
+        {
+          "key": "B",
+          "text": "ログアラート"
+        },
+        {
+          "key": "C",
+          "text": "アクティビティログアラート"
+        },
+        {
+          "key": "D",
+          "text": "Application Insightsアラート"
+        }
+      ],
+      "answer": "C",
+      "explanation": "アクティビティログアラートは、Azureリソースに対する管理操作（作成、削除、更新等）を監視します。"
+    },
+    {
+      "id": "mock-q20",
+      "domain": 0,
+      "number": 20,
+      "text": "仮想ネットワークの各サブネットで予約されているIPアドレスの数は？",
+      "options": [
+        {
+          "key": "A",
+          "text": "3個"
+        },
+        {
+          "key": "B",
+          "text": "4個"
+        },
+        {
+          "key": "C",
+          "text": "5個"
+        },
+        {
+          "key": "D",
+          "text": "6個"
+        }
+      ],
+      "answer": "C",
+      "explanation": "各サブネットで最初の4個（.0、.1、.2、.3）と最後の1個（.255）の合計5個のIPアドレスが予約されています。"
+    }
+  ],
+  "mockExam": [
+    "mock-q1",
+    "mock-q2",
+    "mock-q3",
+    "mock-q4",
+    "mock-q5",
+    "mock-q6",
+    "mock-q7",
+    "mock-q8",
+    "mock-q9",
+    "mock-q10",
+    "mock-q11",
+    "mock-q12",
+    "mock-q13",
+    "mock-q14",
+    "mock-q15",
+    "mock-q16",
+    "mock-q17",
+    "mock-q18",
+    "mock-q19",
+    "mock-q20"
+  ]
+}

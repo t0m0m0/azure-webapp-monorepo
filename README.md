@@ -40,10 +40,14 @@
 ## プロジェクト構成
 
 ```
-├── app/                          # Go Web アプリケーション
-│   ├── main.go                   # HTTP サーバー
+├── app/                          # Go Web アプリケーション (AZ-104 学習 Web UI 同梱)
+│   ├── main.go                   # HTTP サーバー (/health, /api/questions, SPA配信)
 │   ├── go.mod                    # Go モジュール
-│   └── Dockerfile                # マルチステージビルド
+│   ├── cmd/gen-questions/        # ⭐ Study Guide MD → questions.json 生成 CLI
+│   ├── internal/parser/          # ⭐ AZ-104 問題抽出パーサ
+│   ├── data/questions.json       # ⭐ 抽出済み問題データ (go:embed で同梱)
+│   ├── web/                      # ⭐ React + Vite SPA (クイズ・模擬試験・復習)
+│   └── Dockerfile                # マルチステージビルド (Node + Go + Alpine)
 ├── infra/                        # Terraform 構成ファイル
 │   ├── versions.tf               # プロバイダバージョン & バックエンド
 │   ├── variables.tf              # 全入力変数 & locals
@@ -78,6 +82,33 @@
 > ⭐ = AZ-104 学習用に追加したファイル。各ファイルに試験対策のコメントが豊富に含まれています。
 
 ## 🎓 AZ-104 学習の進め方
+
+### Step 0: 学習 Web アプリで問題を解く ⭐ NEW
+
+同梱の React + Go 製学習アプリで、Study Guide の 49 問を対話的に解けます。
+
+```bash
+# 依存インストール (初回のみ)
+make web-install
+
+# SPA ビルド + Go サーバ起動 (http://localhost:8080)
+make app-run
+```
+
+- **ドメイン別クイズ** — 5 ドメインを選んで順に解答 → 即時フィードバック
+- **模擬試験** — 20 問タイマー付き (30 分)、採点・誤答復習
+- **進捗保存** — ブラウザの localStorage に保存 (DB 不要)
+
+フロント開発時は HMR を利用:
+
+```bash
+# ターミナル 1: Go サーバ
+cd app && go run .
+# ターミナル 2: Vite dev server (http://localhost:5173)
+make web-dev
+```
+
+AZ-104 Study Guide の問題を編集した場合は `make gen-questions` で `app/data/questions.json` を再生成してください。
 
 ### Step 1: ドキュメントを読む
 
