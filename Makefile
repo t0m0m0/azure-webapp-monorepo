@@ -1,6 +1,7 @@
 .PHONY: help infra-init infra-plan infra-apply infra-destroy infra-output infra-fmt infra-validate \
         docker-build docker-push deploy deploy-staging swap rollback \
         app-run app-test app-logs \
+        gen-questions gen-questions-check web-install web-dev web-build \
         fd-purge redis-cli db-connect slot-url
 
 PROJECT  ?= webapp
@@ -43,8 +44,8 @@ infra-validate: ## Terraform 構文検証
 
 # ==================== App ====================
 
-app-run: ## ローカルでアプリ起動
-	cd app && go run main.go
+app-run: web-build gen-questions ## ローカルでアプリ起動 (SPA+questions.json生成込み)
+	cd app && go run .
 
 app-test: ## アプリのテスト
 	cd app && go test -v -race ./...
@@ -52,10 +53,27 @@ app-test: ## アプリのテスト
 app-logs: ## App Service のライブログ表示
 	az webapp log tail --name $(APP_NAME) --resource-group $(RG_NAME)
 
+# ==================== AZ-104 学習アプリ ====================
+
+gen-questions: ## AZ-104 Study Guide から questions.json を生成
+	cd app && go run ./cmd/gen-questions -in ../docs/AZ-104_STUDY_GUIDE.md -out data/questions.json
+
+gen-questions-check: ## questions.json が最新か検証 (CI用)
+	cd app && go run ./cmd/gen-questions -in ../docs/AZ-104_STUDY_GUIDE.md -out data/questions.json -check
+
+web-install: ## フロントエンド依存関係をインストール
+	cd app/web && npm ci
+
+web-dev: ## Vite dev server 起動 (HMR、別ターミナルで `cd app && go run .` も起動)
+	cd app/web && npm run dev
+
+web-build: ## React SPA をビルド
+	cd app/web && npm run build
+
 # ==================== Docker ====================
 
-docker-build: ## Docker イメージビルド
-	docker build -t $(IMAGE) app/
+docker-build: ## Docker イメージビルド (リポジトリルートを context に使用)
+	docker build -f app/Dockerfile -t $(IMAGE) .
 
 docker-push: docker-build ## ACR へプッシュ
 	az acr login --name $(ACR_NAME)
