@@ -15,8 +15,9 @@ app/web/node_modules/
 app/web/dist/*
 !app/web/dist/.gitkeep
 app/web/.vite/
+app/web/tsconfig.tsbuildinfo
 
-# Claude Code local settings (per-machine, not for commit)
+# Claude Code
 .claude/
 
 # OS
