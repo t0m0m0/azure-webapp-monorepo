@@ -3,6 +3,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -28,7 +29,13 @@ var reDomainHeader = regexp.MustCompile(`(?m)^# Domain (\d+): (.+)$`)
 var reTFRef = regexp.MustCompile(`[\w]+\.tf`)
 
 func main() {
-	guideBytes, err := os.ReadFile("../../docs/AZ-104_STUDY_GUIDE.md")
+	guidePath := flag.String("guide", "../../docs/AZ-104_STUDY_GUIDE.md", "path to AZ-104 study guide markdown")
+	infraDir := flag.String("infra", "../../infra", "directory containing Terraform .tf files")
+	docsDir := flag.String("docs", "../../docs", "directory containing reference *.md docs")
+	outPath := flag.String("out", "../data/study_content.json", "output path for study_content.json")
+	flag.Parse()
+
+	guideBytes, err := os.ReadFile(*guidePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "read study guide: %v\n", err)
 		os.Exit(1)
@@ -37,7 +44,7 @@ func main() {
 	domains := splitByDomain(string(guideBytes))
 
 	infraFiles := map[string]string{}
-	tfPaths, _ := filepath.Glob("../../infra/*.tf")
+	tfPaths, _ := filepath.Glob(filepath.Join(*infraDir, "*.tf"))
 	for _, p := range tfPaths {
 		content, err := os.ReadFile(p)
 		if err != nil {
@@ -47,7 +54,7 @@ func main() {
 	}
 
 	docFiles := map[string]string{}
-	docPaths, _ := filepath.Glob("../../docs/*.md")
+	docPaths, _ := filepath.Glob(filepath.Join(*docsDir, "*.md"))
 	for _, p := range docPaths {
 		name := filepath.Base(p)
 		if name == "AZ-104_STUDY_GUIDE.md" {
@@ -79,7 +86,11 @@ func main() {
 		fmt.Fprintf(os.Stderr, "marshal: %v\n", err)
 		os.Exit(1)
 	}
-	if err := os.WriteFile("../data/study_content.json", b, 0644); err != nil {
+	if err := os.MkdirAll(filepath.Dir(*outPath), 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "mkdir: %v\n", err)
+		os.Exit(1)
+	}
+	if err := os.WriteFile(*outPath, b, 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "write: %v\n", err)
 		os.Exit(1)
 	}

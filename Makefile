@@ -63,7 +63,7 @@ gen-questions-check: ## questions.json が最新か検証 (CI用)
 	cd app && go run ./cmd/gen-questions -in ../docs/AZ-104_STUDY_GUIDE.md -out data/questions.json -check
 
 gen-study: ## docs/ + infra/ から study_content.json を生成 (Go版)
-	cd app && go run ./cmd/gen-study
+	cd app/cmd/gen-study && go run .
 
 gen-study-node: ## docs/ + infra/ から study_content.json を生成 (Node.js版、Go未インストール環境用)
 	node app/cmd/gen-study/gen-study.mjs
